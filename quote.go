@@ -706,12 +706,17 @@ func googleDaily(symbol string, from, to time.Time) (Quote, error) {
 	return quote, nil
 }
 
-func googleIntra(symbol string, from, to time.Time, period Period) (Quote, error) {
+func googleIntra(symbol string, from, to time.Time, period Period, days_optional int) (Quote, error) {
+	
+	days := 60
+	if days_optional > 0 {
+		days=days_optional
+	}
 
 	args := fmt.Sprintf(
-		"http://finance.google.com/finance/getprices?q=%s&i=%s&p=60d&f=d,o,h,l,c,v",
+		"http://finance.google.com/finance/getprices?q=%s&i=%s&p=%dd&f=d,o,h,l,c,v",
 		strings.ToUpper(symbol),
-		period)
+		period,days)
 
 	resp, err := http.Get(args)
 	if err != nil {
@@ -759,7 +764,7 @@ func googleIntra(symbol string, from, to time.Time, period Period) (Quote, error
 }
 
 // NewQuoteFromGoogle - Google daily/intraday historical prices for a symbol
-func NewQuoteFromGoogle(symbol, startDate, endDate string, period Period) (Quote, error) {
+func NewQuoteFromGoogle(symbol, startDate, endDate string, period Period, days int) (Quote, error) {
 
 	from := ParseDateString(startDate)
 	to := ParseDateString(endDate)
@@ -767,7 +772,7 @@ func NewQuoteFromGoogle(symbol, startDate, endDate string, period Period) (Quote
 	if period == Daily {
 		return googleDaily(symbol, from, to)
 	}
-	return googleIntra(symbol, from, to, period)
+	return googleIntra(symbol, from, to, period, days)
 }
 
 func tiingoDaily(symbol string, from, to time.Time, token string) (Quote, error) {
@@ -852,7 +857,7 @@ func NewQuotesFromGoogle(filename, startDate, endDate string, period Period) (Qu
 
 	for scanner.Scan() {
 		sym := scanner.Text()
-		quote, err := NewQuoteFromGoogle(sym, startDate, endDate, period)
+		quote, err := NewQuoteFromGoogle(sym, startDate, endDate, period, 0)
 		if err == nil {
 			quotes = append(quotes, quote)
 		} else {
@@ -868,7 +873,7 @@ func NewQuotesFromGoogleSyms(symbols []string, startDate, endDate string, period
 
 	quotes := Quotes{}
 	for _, symbol := range symbols {
-		quote, err := NewQuoteFromGoogle(symbol, startDate, endDate, period)
+		quote, err := NewQuoteFromGoogle(symbol, startDate, endDate, period, 0)
 		if err == nil {
 			quotes = append(quotes, quote)
 		} else {

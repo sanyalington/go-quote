@@ -18,7 +18,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/markcheno/go-quote"
+	"github.com/sanyalington/go-quote"
 )
 
 var usage = `Usage:
@@ -31,6 +31,7 @@ Options:
   -h -help             show help
   -v -version          show version
   -years=<years>       number of years to download [default=5]
+  -days=<days>         number of days to download [optional]
   -start=<datestr>     yyyy[-[mm-[dd]]]
   -end=<datestr>       yyyy[-[mm-[dd]]] [default=today]
   -infile=<filename>   list of symbols to download
@@ -65,6 +66,7 @@ const (
 
 type quoteflags struct {
 	years   int
+	days	int
 	delay   int
 	start   string
 	end     string
@@ -290,7 +292,7 @@ func outputIndividual(symbols []string, flags quoteflags) error {
 		if flags.source == "yahoo" {
 			q, _ = quote.NewQuoteFromYahoo(sym, from.Format(dateFormat), to.Format(dateFormat), period, flags.adjust)
 		} else if flags.source == "google" {
-			q, _ = quote.NewQuoteFromGoogle(sym, from.Format(dateFormat), to.Format(dateFormat), period)
+			q, _ = quote.NewQuoteFromGoogle(sym, from.Format(dateFormat), to.Format(dateFormat), period, flags.days)
 		} else if flags.source == "tiingo" {
 			q, _ = quote.NewQuoteFromTiingo(sym, from.Format(dateFormat), to.Format(dateFormat), flags.token)
 		} else if flags.source == "gdax" {
@@ -339,6 +341,7 @@ func main() {
 	var flags quoteflags
 
 	flag.IntVar(&flags.years, "years", 5, "number of years to download")
+	flag.IntVar(&flags.days, "days", 0, "number of days to download")
 	flag.IntVar(&flags.delay, "delay", 100, "milliseconds to delay between requests")
 	flag.StringVar(&flags.start, "start", "", "start date (yyyy[-mm[-dd]])")
 	flag.StringVar(&flags.end, "end", "", "end date (yyyy[-mm[-dd]])")
